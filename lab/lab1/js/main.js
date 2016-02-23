@@ -100,8 +100,20 @@ the week was the most common for garbage removal?
 
 var dataset = 'https://raw.githubusercontent.com/CPLN690-MUSA610/datasets/master/geojson/philadelphia-garbage-collection-boundaries.geojson';
 
-var myStyle = function(feature) {
-  return {};
+
+var myStyle = function(feature){
+  if(feature.properties.COLLDAY == "MON")
+  return {color: "#8856a7"};
+  if(feature.properties.COLLDAY == "TUE")
+  return {color: "#bae4bc"};
+  if(feature.properties.COLLDAY == "WED")
+  return {color: "#7bccc4"};
+  if(feature.properties.COLLDAY == "THU")
+  return {color: "#43a2ca"};
+  if(feature.properties.COLLDAY == "FRI")
+  return {color: "#0868ac"};
+  else
+  return {color: "red"};
 };
 
 var eachFeature = function(feature, layer) {
@@ -111,10 +123,29 @@ var eachFeature = function(feature, layer) {
     Check out feature.properties to see some useful data about the feature that
     you can use in your application.
     ===================== */
-    console.log(feature);
+    var fitBoundsOptions = { padding: [15, 15] };  // An options object
+    map.fitBounds(this.getBounds());
+
+    if(feature.properties.COLLDAY == " ")
+    $(".day-of-week").text("You tell me!").css("color","red");
+    if(feature.properties.COLLDAY == "MON")
+    $(".day-of-week").text("Monday").css("color","#8856a7");
+    if(feature.properties.COLLDAY == "TUE")
+    $(".day-of-week").text("Tuesday").css("color","#bae4bc");
+    if(feature.properties.COLLDAY == "WED")
+    $(".day-of-week").text("Wednesday").css("color","#7bccc4");
+    if(feature.properties.COLLDAY == "THU")
+    $(".day-of-week").text("Thursday").css("color","#43a2ca");
+    if(feature.properties.COLLDAY == "FRI")
+    $(".day-of-week").text("Friday").css("color","#0868ac");
     showResults();
   });
 };
+
+$("#close-button").click(function(){
+  closeResults();
+});
+
 
 var myFilter = function(feature) {
   return true;
@@ -122,7 +153,30 @@ var myFilter = function(feature) {
 
 $(document).ready(function() {
   $.ajax(dataset).done(function(data) {
+
     var parsedData = JSON.parse(data);
+    var dayCounts = {Monday:0,Tuesday:0,Wednesday:0,Thursday:0,Friday:0,Nullday:0};
+    var statCount = _.each(parsedData.features, function(x) {
+      if(x.properties.COLLDAY ==" ")
+      dayCounts.Nullday++;
+      if(x.properties.COLLDAY =="MON")
+      dayCounts.Monday++;
+      if(x.properties.COLLDAY =="TUE")
+      dayCounts.Tuesday++;
+      if(x.properties.COLLDAY =="WED")
+      dayCounts.Wednesday++;
+      if(x.properties.COLLDAY =="THU")
+      dayCounts.Thursday++;
+      if(x.properties.COLLDAY =="FRI")
+      dayCounts.Friday++;
+    });
+    var maxDay = _.max(Object.keys(dayCounts),function(x) {return dayCounts[x];});
+       $(".pop-day").text(maxDay);
+
+
+
+
+
     var myFeatureGroup = L.geoJson(parsedData, {
       onEachFeature: eachFeature,
       style: myStyle,
@@ -140,6 +194,12 @@ var showResults = function() {
   ===================== */
   $('#intro').hide();
   $('#results').show();
+};
+
+var closeResults = function() {
+  $('#intro').show();
+  $('#results').hide();
+  this.map.setView(new L.LatLng(40.000, -75.1090), 11);
 };
 
 /* =====================
